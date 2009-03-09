@@ -9,6 +9,8 @@ var TextField = Class.create({
         this._element.observe('change', function () {
             this._changed = true;
         }.bindAsEventListener(this));
+
+        Event.observe(window, 'unload', this._unload.bindAsEventListener(this));
     },
 
     _onfocus: function () {
@@ -24,6 +26,12 @@ var TextField = Class.create({
         }
 
         this._showPlaceholder(true);
+    },
+
+    _unload: function () {
+        if (! this._changed) {
+            this._element.value = '';
+        }
     },
 
     setPlaceholder: function (str) {
