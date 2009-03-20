@@ -4,28 +4,40 @@ var TextField = Class.create({
         this._placeholder = '';
         this._changed = this._element.value != '';
 
-        this._element.observe('focus', this._onfocus.bindAsEventListener(this));
-        this._element.observe('blur',  this._onblur.bindAsEventListener(this));
-        this._element.observe('change', function () {
-            this._changed = true;
-        }.bindAsEventListener(this));
+        ['focus', 'blur', 'change'].each(function (s) {
+            this._element.observe(s, this['_' + s].bindAsEventListener(this));
+        }.bind(this));
 
         Event.observe(window, 'unload', this._unload.bindAsEventListener(this));
+
+        var form = TextField.formOf(element);
+        if (! form) {
+            return;
+        }
+        $(form).observe('submit', function () {
+            if (! this._changed) {
+                this._element.value = '';
+            }
+        }.bindAsEventListener(this));
     },
 
-    _onfocus: function () {
+    _focus: function () {
         if (! this._changed) {
             this._element.value = '';
         }
         this._showPlaceholder(false);
     },
 
-    _onblur: function () {
+    _blur: function () {
         if (this._element.value == '') {
             this._changed = false;
         }
 
         this._showPlaceholder(true);
+    },
+
+    _change: function () {
+        this._changed = true;
     },
 
     _unload: function () {
@@ -49,3 +61,12 @@ var TextField = Class.create({
     }
 });
 
+TextField.formOf = function (input) {
+    var node = input;
+    while ((node = node.parentNode) != null) {
+        if (node.tagName == 'FORM') {
+            return node;
+        }
+    }
+    return null;
+};
